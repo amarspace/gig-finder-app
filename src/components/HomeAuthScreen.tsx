@@ -1,28 +1,47 @@
+import { useEffect, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
+import { format } from "date-fns";
 import GigHeader from "./GigHeader";
 import GigCard from "./GigCard";
+import { supabase } from "@/integrations/supabase/client";
 
-const mockGigs = {
-  featured: {
-    artist: "DOROFIEVA",
-    venue: "Live in Kyiv",
-    date: "Dec 15, 2024",
-    imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
-    matchPercent: 98,
-  },
-  playlist: [
-    { artist: "FECF DOPFEVA", date: "2 pan 21, UA SVV", imageUrl: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=300&q=80", matchPercent: 86 },
-    { artist: "ARTEM DIVABARO", date: "2epam 98", imageUrl: "https://images.unsplash.com/photo-1547355253-ff0740f6e8c1?w=300&q=80", matchPercent: 96 },
-    { artist: "ARTEM FIVABARO", date: "15 peh 24, UA POP", imageUrl: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=300&q=80", matchPercent: 86 },
-  ],
-  upcoming: [
-    { artist: "ARTEM PIBABARO", date: "18 pan 22, UA POP", imageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&q=80", matchPercent: 99 },
-    { artist: "KOLA", date: "9 pan 22, UA POP", imageUrl: "https://images.unsplash.com/photo-1501612780327-45045538702b?w=300&q=80", matchPercent: 97 },
-    { artist: "KOLA", date: "16pain 22, UA ROD", imageUrl: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=300&q=80", matchPercent: 99 },
-  ],
-};
+interface Gig {
+  id: string;
+  artist_name: string;
+  venue_name: string;
+  event_date: string;
+  genre: string;
+  image_url: string | null;
+  match_percentage: number | null;
+}
 
 const HomeAuthScreen = () => {
+  const [gigs, setGigs] = useState<Gig[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGigs = async () => {
+      const { data, error } = await supabase
+        .from("gigs")
+        .select("*")
+        .order("match_percentage", { ascending: false });
+
+      if (!error && data) {
+        setGigs(data);
+      }
+      setLoading(false);
+    };
+
+    fetchGigs();
+  }, []);
+
+  const featuredGig = gigs[0];
+  const otherGigs = gigs.slice(1);
+
+  const formatDate = (dateString: string) => {
+    return format(new Date(dateString), "MMM d, yyyy");
+  };
+
   return (
     <div className="min-h-screen pb-24 animate-fade-in">
       <div className="px-5 pt-8">
@@ -55,43 +74,40 @@ const HomeAuthScreen = () => {
       {/* Top Match Section */}
       <section className="mt-6 px-5">
         <h2 className="text-lg font-bold text-foreground mb-3">Top Match for You</h2>
-        <GigCard
-          {...mockGigs.featured}
-          size="large"
-        />
-      </section>
-
-      {/* Based on Playlist Section */}
-      <section className="mt-8">
-        <h2 className="text-lg font-bold text-foreground mb-3 px-5">Based on your Playlist: UA POP</h2>
-        <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide">
-          {mockGigs.playlist.map((gig, index) => (
-            <GigCard
-              key={index}
-              artist={gig.artist}
-              venue=""
-              date={gig.date}
-              imageUrl={gig.imageUrl}
-              matchPercent={gig.matchPercent}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="h-48 bg-muted rounded-2xl animate-pulse" />
+        ) : featuredGig ? (
+          <GigCard
+            artist={featuredGig.artist_name}
+            venue={featuredGig.venue_name}
+            date={formatDate(featuredGig.event_date)}
+            imageUrl={featuredGig.image_url || ""}
+            matchPercent={featuredGig.match_percentage || 0}
+            size="large"
+          />
+        ) : null}
       </section>
 
       {/* Upcoming Gigs Section */}
       <section className="mt-8">
         <h2 className="text-lg font-bold text-foreground mb-3 px-5">Upcoming Gigs</h2>
         <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide">
-          {mockGigs.upcoming.map((gig, index) => (
-            <GigCard
-              key={index}
-              artist={gig.artist}
-              venue=""
-              date={gig.date}
-              imageUrl={gig.imageUrl}
-              matchPercent={gig.matchPercent}
-            />
-          ))}
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="w-36 h-44 bg-muted rounded-xl animate-pulse flex-shrink-0" />
+            ))
+          ) : (
+            otherGigs.map((gig) => (
+              <GigCard
+                key={gig.id}
+                artist={gig.artist_name}
+                venue={gig.venue_name}
+                date={formatDate(gig.event_date)}
+                imageUrl={gig.image_url || ""}
+                matchPercent={gig.match_percentage || 0}
+              />
+            ))
+          )}
         </div>
       </section>
     </div>
