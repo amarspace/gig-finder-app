@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      gigs: {
+        Row: {
+          artist_name: string
+          created_at: string
+          event_date: string
+          genre: string
+          id: string
+          image_url: string | null
+          match_percentage: number | null
+          venue_name: string
+        }
+        Insert: {
+          artist_name: string
+          created_at?: string
+          event_date: string
+          genre: string
+          id?: string
+          image_url?: string | null
+          match_percentage?: number | null
+          venue_name: string
+        }
+        Update: {
+          artist_name?: string
+          created_at?: string
+          event_date?: string
+          genre?: string
+          id?: string
+          image_url?: string | null
+          match_percentage?: number | null
+          venue_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
