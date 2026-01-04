@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import GigHeader from "./GigHeader";
 import GigCard from "./GigCard";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Gig {
   id: string;
@@ -18,13 +19,14 @@ interface Gig {
 const HomeAuthScreen = () => {
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile, user } = useAuth();
 
   useEffect(() => {
     const fetchGigs = async () => {
       const { data, error } = await supabase
         .from("gigs")
         .select("*")
-        .order("match_percentage", { ascending: false });
+        .order("event_date", { ascending: true });
 
       if (!error && data) {
         setGigs(data);
@@ -35,8 +37,39 @@ const HomeAuthScreen = () => {
     fetchGigs();
   }, []);
 
-  const featuredGig = gigs[0];
-  const otherGigs = gigs.slice(1);
+  const calculateMatch = (gigGenre: string): { percent: number; state: "matched" | "unmatched" | "unknown" } => {
+    // If user not logged in or not synced, show unknown
+    if (!user || !profile?.is_synced) {
+      return { percent: 0, state: "unknown" };
+    }
+
+    const userGenres = profile.favorite_genres || [];
+    
+    // Check if concert genre matches any user genre
+    const isMatch = userGenres.some((userGenre) => 
+      gigGenre.toLowerCase().includes(userGenre.toLowerCase()) ||
+      userGenre.toLowerCase().includes(gigGenre.toLowerCase())
+    );
+
+    if (isMatch) {
+      // High match: 85-99%
+      const percent = Math.floor(Math.random() * 15) + 85;
+      return { percent, state: "matched" };
+    } else {
+      // Low match: 10-40%
+      const percent = Math.floor(Math.random() * 31) + 10;
+      return { percent, state: "unmatched" };
+    }
+  };
+
+  // Sort gigs by match percentage for display
+  const gigsWithMatch = gigs.map((gig) => ({
+    ...gig,
+    ...calculateMatch(gig.genre),
+  })).sort((a, b) => b.percent - a.percent);
+
+  const featuredGig = gigsWithMatch[0];
+  const otherGigs = gigsWithMatch.slice(1);
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "MMM d, yyyy");
@@ -57,13 +90,17 @@ const HomeAuthScreen = () => {
         />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground">Alex Reed</span>
-            <div className="flex items-center gap-1 text-xs text-red-600">
-              <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current">
-                <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
-              </svg>
-              YouTube Music Synced
-            </div>
+            <span className="font-semibold text-foreground">
+              {profile?.full_name || user?.email?.split("@")[0] || "User"}
+            </span>
+            {profile?.is_synced && (
+              <div className="flex items-center gap-1 text-xs text-red-600">
+                <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current">
+                  <path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73z"/>
+                </svg>
+                YouTube Music Synced
+              </div>
+            )}
           </div>
         </div>
         <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -82,7 +119,8 @@ const HomeAuthScreen = () => {
             venue={featuredGig.venue_name}
             date={formatDate(featuredGig.event_date)}
             imageUrl={featuredGig.image_url || ""}
-            matchPercent={featuredGig.match_percentage || 0}
+            matchPercent={featuredGig.percent}
+            matchState={featuredGig.state}
             size="large"
           />
         ) : null}
@@ -104,7 +142,8 @@ const HomeAuthScreen = () => {
                 venue={gig.venue_name}
                 date={formatDate(gig.event_date)}
                 imageUrl={gig.image_url || ""}
-                matchPercent={gig.match_percentage || 0}
+                matchPercent={gig.percent}
+                matchState={gig.state}
               />
             ))
           )}
