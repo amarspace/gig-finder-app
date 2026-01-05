@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import GigHeader from "./GigHeader";
 import ActionCard from "./ActionCard";
 import SyncOverlay from "./SyncOverlay";
+import MoodGraphic from "./MoodGraphic";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface WelcomeScreenProps {
@@ -38,12 +39,19 @@ const WelcomeScreen = ({ onNavigateToCamera, onSyncComplete }: WelcomeScreenProp
     <>
       <SyncOverlay isVisible={isSyncing} />
       
-      <div className="min-h-screen pb-24 px-5 animate-fade-in">
+      <div className="min-h-screen pb-24 px-5 flex flex-col animate-fade-in">
+        {/* Header */}
         <div className="pt-12">
           <GigHeader />
         </div>
 
-        <div className="mt-12 space-y-4">
+        {/* Central Mood Graphic */}
+        <div className="flex-1 flex items-center justify-center">
+          <MoodGraphic />
+        </div>
+
+        {/* Action Buttons - Bottom Third */}
+        <div className="space-y-4 mt-auto pb-4">
           <ActionCard
             icon={Music}
             title="Import Playlist"
