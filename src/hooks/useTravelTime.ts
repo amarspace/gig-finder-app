@@ -9,12 +9,21 @@ interface TravelTimeResult {
 
 // Mock venue locations for demo purposes
 const VENUE_LOCATIONS: Record<string, { lat: number; lng: number; city: string }> = {
+  // Kyiv venues
   "Барабан": { lat: 50.4501, lng: 30.5234, city: "Kyiv" },
   "Atlas": { lat: 50.4547, lng: 30.5238, city: "Kyiv" },
   "Caribbean Club": { lat: 50.4418, lng: 30.5186, city: "Kyiv" },
   "Docker's ABC": { lat: 50.4501, lng: 30.5234, city: "Kyiv" },
+  // Lviv venues
   "Lviv Opera House": { lat: 49.8442, lng: 24.0260, city: "Lviv" },
+  "!FESTrepublic": { lat: 49.8397, lng: 24.0297, city: "Lviv" },
+  "Picasso Club": { lat: 49.8410, lng: 24.0320, city: "Lviv" },
+  "Pravda Beer Theatre": { lat: 49.8415, lng: 24.0310, city: "Lviv" },
+  // Berlin venues
   "Berlin Arena": { lat: 52.5200, lng: 13.4050, city: "Berlin" },
+  "Berghain": { lat: 52.5110, lng: 13.4432, city: "Berlin" },
+  "SO36": { lat: 52.4990, lng: 13.4290, city: "Berlin" },
+  "Lido Berlin": { lat: 52.4975, lng: 13.4275, city: "Berlin" },
 };
 
 // Calculate mock travel time based on distance and mode

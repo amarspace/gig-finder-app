@@ -21,13 +21,40 @@ interface Gig {
   match_percentage: number | null;
 }
 
-// Mock data for new sections
-const mockVenues = [
-  { id: "1", name: "Барабан", type: "Live Music Bar", imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=80", matchPercent: 92 },
-  { id: "2", name: "Atlas", type: "Concert Hall", imageUrl: "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=400&q=80", matchPercent: 88 },
-  { id: "3", name: "Caribbean Club", type: "Jazz Bar", imageUrl: "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=400&q=80", matchPercent: 75 },
-  { id: "4", name: "Docker's ABC", type: "Pub & Grill", imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=400&q=80", matchPercent: 68 },
-];
+// City filter type
+type CityFilter = "Kyiv" | "Lviv" | "Berlin";
+
+interface VenueData {
+  id: string;
+  name: string;
+  type: string;
+  imageUrl: string;
+  matchPercent: number;
+}
+
+// Mock data for venues by city
+const venuesByCity: Record<CityFilter, VenueData[]> = {
+  Kyiv: [
+    { id: "1", name: "Барабан", type: "Live Music Bar", imageUrl: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&q=80", matchPercent: 92 },
+    { id: "2", name: "Atlas", type: "Concert Hall", imageUrl: "https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=400&q=80", matchPercent: 88 },
+    { id: "3", name: "Caribbean Club", type: "Jazz Bar", imageUrl: "https://images.unsplash.com/photo-1525201548942-d8732f6617a0?w=400&q=80", matchPercent: 75 },
+    { id: "4", name: "Docker's ABC", type: "Pub & Grill", imageUrl: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=400&q=80", matchPercent: 68 },
+  ],
+  Lviv: [
+    { id: "5", name: "Lviv Opera House", type: "Opera & Ballet", imageUrl: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=400&q=80", matchPercent: 95 },
+    { id: "6", name: "!FESTrepublic", type: "Concert Venue", imageUrl: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&q=80", matchPercent: 89 },
+    { id: "7", name: "Picasso Club", type: "Live Music Club", imageUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80", matchPercent: 82 },
+    { id: "8", name: "Pravda Beer Theatre", type: "Brewery & Stage", imageUrl: "https://images.unsplash.com/photo-1574447714530-e9aa4c6b9c3e?w=400&q=80", matchPercent: 78 },
+  ],
+  Berlin: [
+    { id: "9", name: "Berlin Arena", type: "Arena", imageUrl: "https://images.unsplash.com/photo-1499364615650-ec38552f4f34?w=400&q=80", matchPercent: 91 },
+    { id: "10", name: "Berghain", type: "Techno Club", imageUrl: "https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=400&q=80", matchPercent: 96 },
+    { id: "11", name: "SO36", type: "Punk & Alternative", imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&q=80", matchPercent: 85 },
+    { id: "12", name: "Lido Berlin", type: "Live Music Venue", imageUrl: "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=400&q=80", matchPercent: 79 },
+  ],
+};
+
+const cityFilters: CityFilter[] = ["Kyiv", "Lviv", "Berlin"];
 
 const mockFestivals = [
   { id: "1", title: "Atlas Weekend 2026", location: "VDNH, Kyiv", date: "Jul 3-6, 2026", imageUrl: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80" },
@@ -44,6 +71,7 @@ const mockCulture = [
 const HomeAuthScreen = () => {
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCity, setSelectedCity] = useState<CityFilter>("Kyiv");
   const { profile, user } = useAuth();
   const navigate = useNavigate();
 
@@ -181,14 +209,33 @@ const HomeAuthScreen = () => {
             @gigfindermusic
           </a>
         </div>
+        
+        {/* City Filters */}
+        <div className="flex gap-2 px-5 mb-3 overflow-x-auto scrollbar-hide">
+          {cityFilters.map((city) => (
+            <button
+              key={city}
+              onClick={() => setSelectedCity(city)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                selectedCity === city
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              }`}
+            >
+              {city} Local Vibes
+            </button>
+          ))}
+        </div>
+        
         <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide">
-          {mockVenues.map((venue) => (
+          {venuesByCity[selectedCity].map((venue) => (
             <VenueCard
               key={venue.id}
               name={venue.name}
               type={venue.type}
               imageUrl={venue.imageUrl}
               matchPercent={venue.matchPercent}
+              selectedCity={selectedCity}
             />
           ))}
         </div>
