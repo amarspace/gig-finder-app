@@ -1,3 +1,6 @@
+import { PersonStanding, Car, Train } from "lucide-react";
+import { useTravelTime } from "@/hooks/useTravelTime";
+
 interface VenueCardProps {
   name: string;
   type: string;
@@ -7,6 +10,14 @@ interface VenueCardProps {
 }
 
 const VenueCard = ({ name, type, imageUrl, matchPercent, onClick }: VenueCardProps) => {
+  const travelTime = useTravelTime(name);
+
+  const TravelIcon = travelTime ? {
+    walking: PersonStanding,
+    car: Car,
+    train: Train,
+  }[travelTime.icon] : null;
+
   return (
     <div 
       className="flex-shrink-0 w-40 cursor-pointer animate-scale-in"
@@ -30,6 +41,12 @@ const VenueCard = ({ name, type, imageUrl, matchPercent, onClick }: VenueCardPro
       <div className="mt-2">
         <h4 className="font-semibold text-sm text-foreground truncate">{name}</h4>
         <p className="text-xs text-muted-foreground truncate">{type}</p>
+        {travelTime && TravelIcon && (
+          <p className="text-xs text-primary flex items-center gap-1 mt-0.5">
+            <TravelIcon size={12} />
+            {travelTime.minutes} min away
+          </p>
+        )}
       </div>
     </div>
   );
