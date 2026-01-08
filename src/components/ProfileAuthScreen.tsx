@@ -1,5 +1,8 @@
-import { Heart, MapPin, Music, Settings, ChevronRight, LogOut } from "lucide-react";
+import { Heart, MapPin, Music, Settings, ChevronRight, LogOut, Car } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import ProfileAvatar from "./ProfileAvatar";
+import TransportModeSettings from "./TransportModeSettings";
+import { useState } from "react";
 
 interface ProfileAuthScreenProps {
   onSignOut: () => void;
@@ -19,16 +22,15 @@ const mockFavoriteArtists = [
 
 const ProfileAuthScreen = ({ onSignOut }: ProfileAuthScreenProps) => {
   const { user, profile } = useAuth();
+  const [showTransportSettings, setShowTransportSettings] = useState(false);
 
   return (
     <div className="min-h-screen pb-24 px-5 pt-12 animate-fade-in">
       {/* Profile Header */}
       <div className="text-center">
-        <img
-          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80"
-          alt="Profile"
-          className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-primary"
-        />
+        <div className="mx-auto">
+          <ProfileAvatar size="xl" className="mx-auto border-4 border-primary" />
+        </div>
         <h2 className="mt-4 text-2xl font-bold text-foreground">
           {profile?.full_name || user?.email?.split("@")[0] || "Artur"}
         </h2>
@@ -121,6 +123,21 @@ const ProfileAuthScreen = ({ onSignOut }: ProfileAuthScreenProps) => {
             </div>
             <ChevronRight size={20} className="text-muted-foreground" />
           </button>
+          <button 
+            onClick={() => setShowTransportSettings(!showTransportSettings)}
+            className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Car size={18} className="text-muted-foreground" />
+              <span className="font-medium text-foreground">Transport Mode</span>
+            </div>
+            <ChevronRight size={20} className={`text-muted-foreground transition-transform ${showTransportSettings ? "rotate-90" : ""}`} />
+          </button>
+          {showTransportSettings && (
+            <div className="p-4">
+              <TransportModeSettings />
+            </div>
+          )}
         </div>
       </section>
 

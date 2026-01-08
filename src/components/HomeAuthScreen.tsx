@@ -6,6 +6,8 @@ import GigHeader from "./GigHeader";
 import GigCard from "./GigCard";
 import VenueCard from "./VenueCard";
 import EventCard from "./EventCard";
+import ProfileAvatar from "./ProfileAvatar";
+import TravelTimeDisplay from "./TravelTimeDisplay";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -105,11 +107,7 @@ const HomeAuthScreen = () => {
 
       {/* User Profile Bar */}
       <div className="mx-5 mt-4 p-3 bg-card rounded-2xl flex items-center gap-3 shadow-sm">
-        <img
-          src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80"
-          alt="User avatar"
-          className="w-10 h-10 rounded-full object-cover"
-        />
+        <ProfileAvatar size="md" />
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-foreground">
