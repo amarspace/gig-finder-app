@@ -1,5 +1,6 @@
 import { PersonStanding, Car, Train } from "lucide-react";
 import { useTravelTime } from "@/hooks/useTravelTime";
+import { useUserSettings } from "@/contexts/UserSettingsContext";
 
 interface VenueCardProps {
   name: string;
@@ -7,10 +8,16 @@ interface VenueCardProps {
   imageUrl: string;
   matchPercent?: number;
   onClick?: () => void;
+  selectedCity?: string;
 }
 
-const VenueCard = ({ name, type, imageUrl, matchPercent, onClick }: VenueCardProps) => {
+const VenueCard = ({ name, type, imageUrl, matchPercent, onClick, selectedCity }: VenueCardProps) => {
+  const { userLocation } = useUserSettings();
   const travelTime = useTravelTime(name);
+
+  // Only show travel time if selected city matches user's current city
+  const isUserCity = selectedCity && userLocation?.city === selectedCity;
+  const showTravelTime = isUserCity && travelTime;
 
   const TravelIcon = travelTime ? {
     walking: PersonStanding,
@@ -41,7 +48,7 @@ const VenueCard = ({ name, type, imageUrl, matchPercent, onClick }: VenueCardPro
       <div className="mt-2">
         <h4 className="font-semibold text-sm text-foreground truncate">{name}</h4>
         <p className="text-xs text-muted-foreground truncate">{type}</p>
-        {travelTime && TravelIcon && (
+        {showTravelTime && TravelIcon && (
           <p className="text-xs text-primary flex items-center gap-1 mt-0.5">
             <TravelIcon size={12} />
             {travelTime.minutes} min away
