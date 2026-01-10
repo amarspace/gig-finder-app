@@ -2,6 +2,8 @@ import { Heart, MapPin, Music, Settings, ChevronRight, LogOut, Car } from "lucid
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileAvatar from "./ProfileAvatar";
 import TransportModeSettings from "./TransportModeSettings";
+import WishListSection from "./WishListSection";
+import ConnectedPeopleSection from "./ConnectedPeopleSection";
 import { useState } from "react";
 
 interface ProfileAuthScreenProps {
@@ -52,8 +54,14 @@ const ProfileAuthScreen = ({ onSignOut }: ProfileAuthScreenProps) => {
         )}
       </div>
 
+      {/* Wish List Section */}
+      <WishListSection />
+
+      {/* Connected People Section */}
+      <ConnectedPeopleSection />
+
       {/* Favorite Places Section */}
-      <section className="mt-8">
+      <section className="mt-6">
         <div className="flex items-center gap-2 mb-3">
           <MapPin size={20} className="text-primary" />
           <h3 className="text-lg font-bold text-foreground">Favorite Places</h3>

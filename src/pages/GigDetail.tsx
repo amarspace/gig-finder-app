@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Instagram, Youtube, ExternalLink, Play } from "lucide-react";
+import { ArrowLeft, Instagram, Youtube, ExternalLink, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import WishlistButton from "@/components/WishlistButton";
 
 interface Gig {
   id: string;
@@ -28,10 +28,8 @@ const GigDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile, user } = useAuth();
-  const { toast } = useToast();
   const [gig, setGig] = useState<Gig | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchGig = async () => {
@@ -70,14 +68,6 @@ const GigDetail = () => {
   };
 
   const matchData = calculateMatch();
-
-  const handleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    toast({
-      title: isFavorite ? "Removed from favorites" : "Added to favorites",
-      description: isFavorite ? "Artist removed from your list" : "Artist saved to your favorites",
-    });
-  };
 
   if (loading) {
     return (
@@ -149,16 +139,7 @@ const GigDetail = () => {
               {format(new Date(gig.event_date), "EEEE, MMMM d, yyyy")}
             </p>
           </div>
-          <button
-            onClick={handleFavorite}
-            className={`p-3 rounded-full transition-colors ${
-              isFavorite 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
-            }`}
-          >
-            <Heart size={24} fill={isFavorite ? "currentColor" : "none"} />
-          </button>
+          <WishlistButton gigId={gig.id} size="lg" />
         </div>
 
         {/* Genre Tag */}

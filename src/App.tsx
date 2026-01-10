@@ -8,6 +8,7 @@ import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import GigDetail from "./pages/GigDetail";
+import SectionList from "./pages/SectionList";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/gig/:id" element={<GigDetail />} />
+              <Route path="/section/:section" element={<SectionList />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

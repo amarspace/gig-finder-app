@@ -7,7 +7,8 @@ import GigCard from "./GigCard";
 import VenueCard from "./VenueCard";
 import EventCard from "./EventCard";
 import ProfileAvatar from "./ProfileAvatar";
-import TravelTimeDisplay from "./TravelTimeDisplay";
+import SectionHeader from "./SectionHeader";
+import WishlistButton from "./WishlistButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -162,7 +163,7 @@ const HomeAuthScreen = () => {
         {loading ? (
           <div className="h-48 bg-muted rounded-2xl animate-pulse" />
         ) : featuredGig ? (
-          <div onClick={() => handleGigClick(featuredGig.id)} className="cursor-pointer">
+          <div onClick={() => handleGigClick(featuredGig.id)} className="cursor-pointer relative">
             <GigCard
               artist={featuredGig.artist_name}
               venue={featuredGig.venue_name}
@@ -172,13 +173,16 @@ const HomeAuthScreen = () => {
               matchState={featuredGig.state}
               size="large"
             />
+            <div className="absolute top-4 left-4">
+              <WishlistButton gigId={featuredGig.id} size="md" />
+            </div>
           </div>
         ) : null}
       </section>
 
       {/* Upcoming Gigs Section */}
       <section className="mt-8">
-        <h2 className="text-lg font-bold text-foreground mb-3 px-5">Upcoming Gigs</h2>
+        <SectionHeader title="Upcoming Gigs" sectionKey="gigs" />
         <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
@@ -186,7 +190,7 @@ const HomeAuthScreen = () => {
             ))
           ) : (
             otherGigs.map((gig) => (
-              <div key={gig.id} onClick={() => handleGigClick(gig.id)} className="cursor-pointer">
+              <div key={gig.id} onClick={() => handleGigClick(gig.id)} className="cursor-pointer relative">
                 <GigCard
                   artist={gig.artist_name}
                   venue={gig.venue_name}
@@ -195,6 +199,9 @@ const HomeAuthScreen = () => {
                   matchPercent={gig.percent}
                   matchState={gig.state}
                 />
+                <div className="absolute top-2 left-2">
+                  <WishlistButton gigId={gig.id} size="sm" />
+                </div>
               </div>
             ))
           )}
@@ -203,12 +210,16 @@ const HomeAuthScreen = () => {
 
       {/* Local Vibe Section */}
       <section className="mt-8">
-        <div className="flex items-center justify-between px-5 mb-3">
-          <h2 className="text-lg font-bold text-foreground">Local Vibe</h2>
-          <a href="https://instagram.com/gigfindermusic" target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-medium">
-            @gigfindermusic
-          </a>
-        </div>
+        <SectionHeader
+          title="Local Vibe"
+          sectionKey="local-vibe"
+          city={selectedCity}
+          rightContent={
+            <a href="https://instagram.com/gigfindermusic" target="_blank" rel="noopener noreferrer" className="text-xs text-primary font-medium">
+              @gigfindermusic
+            </a>
+          }
+        />
         
         {/* City Filters */}
         <div className="flex gap-2 px-5 mb-3 overflow-x-auto scrollbar-hide">
@@ -243,7 +254,7 @@ const HomeAuthScreen = () => {
 
       {/* Festivals Section */}
       <section className="mt-8">
-        <h2 className="text-lg font-bold text-foreground mb-3 px-5">Festivals</h2>
+        <SectionHeader title="Festivals" sectionKey="festivals" />
         <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide">
           {mockFestivals.map((festival) => (
             <EventCard
@@ -260,7 +271,7 @@ const HomeAuthScreen = () => {
 
       {/* City Culture Section */}
       <section className="mt-8">
-        <h2 className="text-lg font-bold text-foreground mb-3 px-5">City Culture</h2>
+        <SectionHeader title="City Culture" sectionKey="culture" />
         <div className="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-hide">
           {mockCulture.map((item) => (
             <EventCard
