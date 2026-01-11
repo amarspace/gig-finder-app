@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Instagram, Youtube, ExternalLink, Play } from "lucide-react";
+import { ArrowLeft, Instagram, Youtube, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -181,7 +181,7 @@ const GigDetail = () => {
           </p>
         </section>
 
-        {/* Social Links */}
+        {/* Social Links - Instagram & YouTube Only */}
         <section className="mt-8">
           <h2 className="text-lg font-bold text-foreground mb-3">Follow</h2>
           <div className="flex gap-3">
@@ -189,28 +189,19 @@ const GigDetail = () => {
               href={`https://www.instagram.com/explore/tags/${gig.artist_name.replace(/\s+/g, '').toLowerCase()}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-3 bg-card rounded-xl border border-border hover:bg-muted transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white rounded-xl hover:opacity-90 transition-opacity"
             >
-              <Instagram size={20} className="text-foreground" />
-              <span className="text-sm font-medium text-foreground">Instagram</span>
+              <Instagram size={20} />
+              <span className="text-sm font-medium">Instagram</span>
             </a>
             <a
               href={`https://www.youtube.com/results?search_query=${encodeURIComponent(gig.artist_name)}+official+music`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-3 bg-card rounded-xl border border-border hover:bg-muted transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
             >
-              <Youtube size={20} className="text-red-600" />
-              <span className="text-sm font-medium text-foreground">YouTube</span>
-            </a>
-            <a
-              href={`https://www.google.com/search?q=${encodeURIComponent(gig.artist_name)}+official+website`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-3 bg-card rounded-xl border border-border hover:bg-muted transition-colors"
-            >
-              <ExternalLink size={20} className="text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Website</span>
+              <Youtube size={20} />
+              <span className="text-sm font-medium">YouTube</span>
             </a>
           </div>
         </section>
