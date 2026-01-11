@@ -185,24 +185,28 @@ const GigDetail = () => {
         <section className="mt-8">
           <h2 className="text-lg font-bold text-foreground mb-3">Follow</h2>
           <div className="flex gap-3">
-            <a
-              href={`https://www.instagram.com/explore/tags/${gig.artist_name.replace(/\s+/g, '').toLowerCase()}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => {
+                // Use Google search handoff to find verified Instagram profile
+                const instagramUrl = `https://www.google.com/search?q=${encodeURIComponent(gig.artist_name)}+official+instagram`;
+                window.open(instagramUrl, '_blank', 'noopener,noreferrer');
+              }}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white rounded-xl hover:opacity-90 transition-opacity"
             >
               <Instagram size={20} />
               <span className="text-sm font-medium">Instagram</span>
-            </a>
-            <a
-              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(gig.artist_name)}+official+music`}
-              target="_blank"
-              rel="noopener noreferrer"
+            </button>
+            <button
+              onClick={() => {
+                // Use YouTube search for official artist content
+                const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(gig.artist_name)}+official+music`;
+                window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
+              }}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
             >
               <Youtube size={20} />
               <span className="text-sm font-medium">YouTube</span>
-            </a>
+            </button>
           </div>
         </section>
 
