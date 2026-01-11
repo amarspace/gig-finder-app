@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
+import { PlaylistProvider } from "@/contexts/PlaylistContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import GigDetail from "./pages/GigDetail";
@@ -21,14 +22,16 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <UserSettingsProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/gig/:id" element={<GigDetail />} />
-              <Route path="/section/:section" element={<SectionList />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <PlaylistProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/gig/:id" element={<GigDetail />} />
+                <Route path="/section/:section" element={<SectionList />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PlaylistProvider>
           </UserSettingsProvider>
         </AuthProvider>
       </BrowserRouter>
