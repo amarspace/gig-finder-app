@@ -385,15 +385,28 @@ export function calculateMatchPercent(
   };
 }
 
-// Generate social media URLs for an artist (fallback when enrichment unavailable)
+/**
+ * Generate safe social media URLs for an artist
+ * Uses Google search handoff to bypass ERR_BLOCKED_BY_RESPONSE errors
+ * from direct Instagram tag/explore URLs
+ */
 export function generateSocialLinks(artistName: string) {
   const encodedArtist = encodeURIComponent(artistName);
-  const tagName = artistName.replace(/\s+/g, '').toLowerCase();
 
   return {
+    // Use YouTube search which is reliable and not blocked
     youtube: `https://www.youtube.com/results?search_query=${encodedArtist}+official+music`,
-    instagram: `https://www.instagram.com/explore/tags/${tagName}`,
+    // Use Google search handoff to find verified Instagram profile
+    instagram: `https://www.google.com/search?q=${encodedArtist}+official+instagram`,
   };
+}
+
+/**
+ * Safely open a social link in a new tab
+ * Uses window.open with proper security parameters to avoid blocking
+ */
+export function openSocialLink(url: string): void {
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 // Get user's location using Geolocation API
