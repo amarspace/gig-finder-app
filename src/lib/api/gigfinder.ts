@@ -88,63 +88,96 @@ export async function scrapeEvents(): Promise<{ success: boolean; events?: Scrap
 }
 
 // Calculate match percentage based on user's playlist analysis and event genre
+// Returns: High Match (85-98%), Mid Match (60-84%), Low Match (<60%) or "New for You"
 export function calculateMatchPercent(
   eventGenre: string,
   eventArtist: string,
   userAnalysis: PlaylistAnalysis | null
-): { percent: number; state: 'matched' | 'unmatched' | 'unknown' } {
-  // No playlist imported - return random vibe %
+): { percent: number; state: 'matched' | 'unmatched' | 'unknown'; isNewForYou: boolean } {
+  // No playlist imported - return random vibe % (fallback for guests without import)
   if (!userAnalysis) {
     const vibePercent = Math.floor(Math.random() * 16) + 80; // 80-95%
-    return { percent: vibePercent, state: 'unknown' };
+    return { percent: vibePercent, state: 'unknown', isNewForYou: false };
   }
 
-  let basePercent = 0;
-  let isMatch = false;
+  const eventGenreLower = eventGenre.toLowerCase();
+  const eventArtistLower = eventArtist.toLowerCase();
 
-  // Check for artist match (+25%)
-  const artistMatch = userAnalysis.artists.some(
-    artist => artist.toLowerCase().includes(eventArtist.toLowerCase()) ||
-              eventArtist.toLowerCase().includes(artist.toLowerCase())
+  // Check for exact artist match
+  const exactArtistMatch = userAnalysis.artists.some(
+    artist => artist.toLowerCase() === eventArtistLower ||
+              eventArtistLower.includes(artist.toLowerCase()) ||
+              artist.toLowerCase().includes(eventArtistLower)
   );
-  if (artistMatch) {
-    basePercent += 25;
-    isMatch = true;
-  }
 
-  // Check for genre match (+60-70%)
-  const genreMatch = userAnalysis.genres.some(
-    genre => eventGenre.toLowerCase().includes(genre.toLowerCase()) ||
-             genre.toLowerCase().includes(eventGenre.toLowerCase())
+  // Check if genre is TOP genre (first in list)
+  const topGenre = userAnalysis.genres[0]?.toLowerCase() || '';
+  const isTopGenreMatch = topGenre && (
+    eventGenreLower.includes(topGenre) || 
+    topGenre.includes(eventGenreLower)
   );
-  if (genreMatch) {
-    basePercent += Math.floor(Math.random() * 11) + 60; // 60-70%
-    isMatch = true;
-  }
 
-  // Check for keyword match (+5-10%)
-  const keywordMatch = userAnalysis.keywords.some(
-    keyword => eventGenre.toLowerCase().includes(keyword) ||
-               eventArtist.toLowerCase().includes(keyword)
+  // Check for secondary genre match
+  const secondaryGenreMatch = userAnalysis.genres.slice(1).some(
+    genre => eventGenreLower.includes(genre.toLowerCase()) ||
+             genre.toLowerCase().includes(eventGenreLower)
   );
-  if (keywordMatch) {
-    basePercent += Math.floor(Math.random() * 6) + 5; // 5-10%
+
+  // Similar genre mapping for secondary matches
+  const genreSimilarity: Record<string, string[]> = {
+    'pop': ['indie', 'dance', 'electronic', 'r&b'],
+    'rock': ['indie', 'alternative', 'metal', 'punk'],
+    'indie': ['alternative', 'folk', 'rock', 'pop'],
+    'electronic': ['techno', 'house', 'edm', 'dance'],
+    'hip-hop': ['rap', 'r&b', 'urban'],
+    'folk': ['acoustic', 'singer-songwriter', 'indie'],
+    'jazz': ['blues', 'soul', 'r&b'],
+    'classical': ['orchestral', 'opera', 'instrumental'],
+  };
+
+  // Check for similar genre (related genres)
+  const hasSimilarGenre = userAnalysis.genres.some(userGenre => {
+    const similar = genreSimilarity[userGenre.toLowerCase()] || [];
+    return similar.some(s => eventGenreLower.includes(s));
+  });
+
+  // Calculate final match
+  let percent = 0;
+  let state: 'matched' | 'unmatched' | 'unknown' = 'unmatched';
+
+  if (exactArtistMatch) {
+    // Artist match: 85-98% (High Match)
+    percent = Math.floor(Math.random() * 14) + 85; // 85-98%
+    state = 'matched';
+  } else if (isTopGenreMatch) {
+    // Top genre match: 85-98% (High Match)
+    percent = Math.floor(Math.random() * 14) + 85; // 85-98%
+    state = 'matched';
+  } else if (secondaryGenreMatch) {
+    // Secondary genre match: 60-84% (Mid Match)
+    percent = Math.floor(Math.random() * 25) + 60; // 60-84%
+    state = 'matched';
+  } else if (hasSimilarGenre) {
+    // Similar genre: 60-79% (Mid Match)
+    percent = Math.floor(Math.random() * 20) + 60; // 60-79%
+    state = 'unmatched';
+  } else {
+    // No overlap: "New for You" - return low percent
+    percent = Math.floor(Math.random() * 25) + 15; // 15-39%
+    state = 'unmatched';
   }
 
-  // Add 1-5% jitter for precision feel
-  const jitter = Math.floor(Math.random() * 5) + 1;
-  
-  // Cap at 99%
-  const finalPercent = Math.min(99, basePercent + jitter);
-
-  if (isMatch && finalPercent > 50) {
-    return { percent: finalPercent, state: 'matched' };
-  } else if (finalPercent > 0) {
-    return { percent: Math.max(20, finalPercent), state: 'unmatched' };
+  // Add 1-5% jitter for precision feel (only for non-low matches)
+  if (percent >= 60) {
+    const jitter = Math.floor(Math.random() * 5) + 1;
+    percent = Math.min(99, percent + jitter);
   }
 
-  // Fallback for no match
-  return { percent: Math.floor(Math.random() * 20) + 15, state: 'unmatched' };
+  return { 
+    percent, 
+    state,
+    isNewForYou: percent < 50
+  };
 }
 
 // Generate social media URLs for an artist

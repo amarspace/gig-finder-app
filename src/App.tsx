@@ -8,6 +8,8 @@ import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import { PlaylistProvider } from "@/contexts/PlaylistContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Import from "./pages/Import";
+import Results from "./pages/Results";
 import GigDetail from "./pages/GigDetail";
 import SectionList from "./pages/SectionList";
 import NotFound from "./pages/NotFound";
@@ -26,6 +28,8 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/import" element={<Import />} />
+                <Route path="/results" element={<Results />} />
                 <Route path="/gig/:id" element={<GigDetail />} />
                 <Route path="/section/:section" element={<SectionList />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

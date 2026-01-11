@@ -6,6 +6,7 @@ interface GigCardProps {
   matchPercent?: number | null;
   matchState?: "matched" | "unmatched" | "unknown";
   size?: "large" | "small";
+  showNewLabel?: boolean;
 }
 
 const GigCard = ({ 
@@ -15,7 +16,8 @@ const GigCard = ({
   imageUrl, 
   matchPercent, 
   matchState = "matched",
-  size = "small" 
+  size = "small",
+  showNewLabel = false
 }: GigCardProps) => {
   const getBadgeStyles = () => {
     if (matchState === "unknown") {
@@ -28,6 +30,16 @@ const GigCard = ({
   };
 
   const renderBadge = () => {
+    if (showNewLabel) {
+      return (
+        <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold py-1 px-2 rounded-lg">
+          NEW
+          <br />
+          <span className="text-[10px] font-medium">For You</span>
+        </div>
+      );
+    }
+
     if (matchState === "unknown") {
       return (
         <div className={`${getBadgeStyles()} text-xs font-bold py-1 px-2 rounded-lg`}>
@@ -85,7 +97,12 @@ const GigCard = ({
         />
         
         <div className="absolute top-2 right-2">
-          {matchState === "unknown" ? (
+          {showNewLabel ? (
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] py-0.5 px-1.5 rounded font-bold">
+              NEW
+              <span className="block text-[8px]">For You</span>
+            </div>
+          ) : matchState === "unknown" ? (
             <div className="bg-muted text-muted-foreground text-[10px] py-0.5 px-1.5 rounded font-bold">
               ??%
               <span className="block text-[8px]">Match</span>
