@@ -23,3 +23,12 @@ verify_jwt = false
 
 [functions.fetch-instagram]
 verify_jwt = false
+
+[functions.analyze-playlist-dna]
+verify_jwt = false
+
+[functions.fetch-global-events]
+verify_jwt = false
+
+[functions.enrich-artist]
+verify_jwt = false
