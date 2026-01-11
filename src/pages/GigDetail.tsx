@@ -186,21 +186,27 @@ const GigDetail = () => {
           <h2 className="text-lg font-bold text-foreground mb-3">Follow</h2>
           <div className="flex gap-3">
             <a
-              href="#"
+              href={`https://www.instagram.com/explore/tags/${gig.artist_name.replace(/\s+/g, '').toLowerCase()}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-3 bg-card rounded-xl border border-border hover:bg-muted transition-colors"
             >
               <Instagram size={20} className="text-foreground" />
               <span className="text-sm font-medium text-foreground">Instagram</span>
             </a>
             <a
-              href="#"
+              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(gig.artist_name)}+official+music`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-3 bg-card rounded-xl border border-border hover:bg-muted transition-colors"
             >
               <Youtube size={20} className="text-red-600" />
               <span className="text-sm font-medium text-foreground">YouTube</span>
             </a>
             <a
-              href="#"
+              href={`https://www.google.com/search?q=${encodeURIComponent(gig.artist_name)}+official+website`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-3 bg-card rounded-xl border border-border hover:bg-muted transition-colors"
             >
               <ExternalLink size={20} className="text-muted-foreground" />
@@ -212,6 +218,7 @@ const GigDetail = () => {
         {/* Buy Tickets Button */}
         <Button
           className="w-full mt-8 py-6 text-lg font-semibold bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-2xl"
+          onClick={() => window.open(`https://kontramarka.ua/uk/search?query=${encodeURIComponent(gig.artist_name)}`, '_blank')}
         >
           Get Tickets
         </Button>
