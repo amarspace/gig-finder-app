@@ -176,39 +176,84 @@ export async function enrichArtist(artistName: string): Promise<{ success: boole
 }
 
 /**
- * Calculate match score using vibe-to-vibe mapping
+ * Calculate match score using weighted vibe mapping with MusicBrainz integration
  * This implements the sophisticated matching algorithm that ensures:
  * - "Yacht Rock" fans get smooth/sophisticated artists, not generic pop
- * - Opposite vibes get penalized (e.g., Acoustic fans don't want Electronic)
- * - Direct genre overlap gets bonus points
+ * - Opposite vibes get penalized heavily (e.g., Acoustic fans don't want Electronic)
+ * - Specific sub-genre overlaps get boosted (e.g., "Smooth," "Sophisti-pop," "Funk")
+ * - Mainstream Pop/Dance artists get penalized for niche genres like Yacht Rock
  */
 export function calculateMatchScore(
   playlistTags: string[],
   eventTags: string[]
 ): number {
-  const weights = { genre: 0.6, artist: 0.3, mood: 0.1 };
   let score = 0;
 
-  const playlistTagsLower = playlistTags.map(t => t.toLowerCase());
-  const eventTagsLower = eventTags.map(t => t.toLowerCase());
+  const playlistTagsLower = playlistTags.map(t => t.toLowerCase().trim());
+  const eventTagsLower = eventTags.map(t => t.toLowerCase().trim());
 
-  // Logic 1: Vibe-to-Vibe Mapping
-  // Check if playlist matches sophisticated vibes
-  const smoothVibes = vibeMap['Yacht Rock'];
-  const isSmoothPlaylist = playlistTagsLower.some(tag => 
-    smoothVibes.some(v => tag.includes(v) || v.includes(tag))
-  );
-  const isSmoothEvent = eventTagsLower.some(tag => 
-    ['smooth', 'jazz-pop', 'indie-safari', 'sophisti-pop', 'soft rock'].some(v => 
-      tag.includes(v) || v.includes(tag)
-    )
-  );
+  // Define incompatible genre pairs (for heavy penalties)
+  const incompatiblePairs: Record<string, string[]> = {
+    'yacht rock': ['mainstream pop', 'dance', 'edm', 'hip-hop', 'metal', 'hard rock'],
+    'soft rock': ['death metal', 'thrash', 'hardcore', 'dubstep', 'trap'],
+    'acoustic': ['electronic', 'techno', 'house', 'dubstep', 'edm'],
+    'jazz': ['metal', 'punk', 'hardcore', 'screamo'],
+    'classical': ['hip-hop', 'rap', 'metal', 'punk', 'edm'],
+  };
 
-  if (isSmoothPlaylist && isSmoothEvent) {
-    score += weights.genre * 100;
+  // Define genre boost pairs (specific sub-genres that work well together)
+  const genreBoosts: Record<string, { keywords: string[], boost: number }> = {
+    'yacht rock': {
+      keywords: ['smooth', 'sophisti-pop', 'aor', 'funk', 'jazz-pop', 'soft rock', 'indie-safari'],
+      boost: 80
+    },
+    'indie': {
+      keywords: ['indie rock', 'indie pop', 'lo-fi', 'dream pop', 'shoegaze', 'alternative'],
+      boost: 70
+    },
+    'electronic': {
+      keywords: ['techno', 'house', 'deep house', 'minimal', 'ambient', 'downtempo'],
+      boost: 70
+    },
+    'jazz': {
+      keywords: ['jazz-pop', 'smooth jazz', 'bebop', 'cool jazz', 'fusion'],
+      boost: 75
+    },
+  };
+
+  // Step 1: Check for specific sub-genre overlaps (HIGHEST PRIORITY)
+  let hasSubGenreMatch = false;
+  for (const [genre, config] of Object.entries(genreBoosts)) {
+    const playlistHasGenre = playlistTagsLower.some(tag =>
+      tag.includes(genre) || config.keywords.some(kw => tag.includes(kw))
+    );
+    const eventHasSubGenre = eventTagsLower.some(tag =>
+      config.keywords.some(kw => tag.includes(kw))
+    );
+
+    if (playlistHasGenre && eventHasSubGenre) {
+      score += config.boost;
+      hasSubGenreMatch = true;
+      break; // Only apply highest matching boost
+    }
   }
 
-  // Check other vibe categories
+  // Step 2: Check for incompatible genres (HEAVY PENALTY)
+  for (const [genre, incompatibles] of Object.entries(incompatiblePairs)) {
+    const playlistHasGenre = playlistTagsLower.some(tag => tag.includes(genre));
+    const eventHasIncompatible = eventTagsLower.some(tag =>
+      incompatibles.some(inc => tag.includes(inc))
+    );
+
+    if (playlistHasGenre && eventHasIncompatible) {
+      // Set match score to <20% for incompatible pairings
+      score -= 80;
+      break;
+    }
+  }
+
+  // Step 3: Check vibe category matches
+  let vibeMatchScore = 0;
   for (const [vibeCategory, vibeTerms] of Object.entries(vibeMap)) {
     const playlistHasVibe = playlistTagsLower.some(tag =>
       vibeTerms.some(term => tag.includes(term) || term.includes(tag))
@@ -218,40 +263,37 @@ export function calculateMatchScore(
     );
 
     if (playlistHasVibe && eventHasVibe) {
-      score += weights.genre * 80;
-      break; // Only count best match
+      vibeMatchScore = Math.max(vibeMatchScore, 60);
+      break;
     }
   }
+  score += vibeMatchScore;
 
-  // Logic 2: Strict Filtering (Opposite Vibe Penalty)
-  const electronicTerms = vibeMap['Electronic'];
-  const isAcousticPlaylist = playlistTagsLower.some(tag =>
-    vibeMap['Acoustic'].some(term => tag.includes(term) || term.includes(tag))
-  );
-  const isElectronicEvent = eventTagsLower.some(tag =>
-    electronicTerms.some(term => tag.includes(term) || term.includes(tag))
-  );
-
-  if (isAcousticPlaylist && isElectronicEvent) {
-    score -= 50;
-  }
-
-  // Metal penalty for soft rock fans
-  const isMetalEvent = eventTagsLower.some(tag =>
-    vibeMap['Metal'].some(term => tag.includes(term) || term.includes(tag))
-  );
-  if (isSmoothPlaylist && isMetalEvent) {
-    score -= 40;
-  }
-
-  // Logic 3: Direct Genre/Tag Match
-  const overlap = playlistTagsLower.filter(t => 
-    eventTagsLower.some(e => e.includes(t) || t.includes(e))
+  // Step 4: Direct tag/genre overlap (exact matches)
+  const exactMatches = playlistTagsLower.filter(t =>
+    eventTagsLower.some(e => e === t || e.includes(t) || t.includes(e))
   ).length;
-  score += (overlap / Math.max(playlistTagsLower.length, 1)) * 20;
 
-  // Add small randomness for natural feel (1-5%)
-  const jitter = Math.random() * 5;
+  if (exactMatches > 0) {
+    // Boost: 5 points per exact match, up to 30 points
+    score += Math.min(exactMatches * 5, 30);
+  }
+
+  // Step 5: Penalty for Yacht Rock + Mainstream Pop/Dance mismatch
+  const isYachtRockPlaylist = playlistTagsLower.some(tag =>
+    ['yacht rock', 'soft rock', 'aor', 'smooth'].some(v => tag.includes(v))
+  );
+  const isMainstreamPopEvent = eventTagsLower.some(tag =>
+    ['mainstream pop', 'dance pop', 'dance', 'high-energy'].some(v => tag.includes(v))
+  );
+
+  if (isYachtRockPlaylist && isMainstreamPopEvent) {
+    // Heavy penalty: Yacht Rock fans don't want high-energy pop/dance
+    score -= 70;
+  }
+
+  // Step 6: Add small randomness for natural feel (1-3%)
+  const jitter = Math.random() * 3;
 
   return Math.min(Math.max(Math.round(score + jitter), 0), 98);
 }

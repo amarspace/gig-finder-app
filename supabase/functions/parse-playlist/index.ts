@@ -150,42 +150,6 @@ function extractKeywords(html: string): string[] {
   return Array.from(keywords).slice(0, 30);
 }
 
-// Generate mock analysis for demo purposes
-function generateMockAnalysis(url: string): PlaylistAnalysis {
-  const source = detectPlatform(url);
-  
-  // Simulated taste profiles based on random selection
-  const mockProfiles = [
-    {
-      artists: ['KAZKA', 'Go_A', 'The Hardkiss'],
-      genres: ['Pop', 'Electronic', 'Folk'],
-      keywords: ['ukrainian', 'dance', 'folk-pop']
-    },
-    {
-      artists: ['Океан Ельзи', 'Бумбокс', 'Антитіла'],
-      genres: ['Rock', 'Pop Rock', 'Indie'],
-      keywords: ['rock', 'alternative', 'ukrainian']
-    },
-    {
-      artists: ['Kalush Orchestra', 'MONATIK', 'Jamala'],
-      genres: ['Hip-Hop', 'R&B', 'Soul'],
-      keywords: ['hip-hop', 'soul', 'contemporary']
-    },
-    {
-      artists: ['Onuka', 'ДахаБраха', 'Vivienne Mort'],
-      genres: ['Electronic', 'Folk', 'Indie'],
-      keywords: ['electronic', 'experimental', 'folk']
-    }
-  ];
-
-  const profile = mockProfiles[Math.floor(Math.random() * mockProfiles.length)];
-  
-  return {
-    ...profile,
-    source
-  };
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -208,23 +172,40 @@ Deno.serve(async (req) => {
 
     // Try to fetch and parse the playlist page
     const html = await fetchPlaylistPreview(url);
-    
+
     if (html && html.length > 1000) {
       // Parse real content
       const artists = extractArtistsFromHtml(html);
       const genres = extractGenresFromHtml(html);
       const keywords = extractKeywords(html);
 
+      // If we couldn't extract any data, return error
+      if (artists.length === 0 || genres.length === 0) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Unable to extract playlist data. Please make sure the playlist is public and try again.'
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       analysis = {
-        artists: artists.length > 0 ? artists : generateMockAnalysis(url).artists,
-        genres: genres.length > 0 ? genres : generateMockAnalysis(url).genres,
-        keywords: keywords.length > 0 ? keywords : generateMockAnalysis(url).keywords,
+        artists,
+        genres,
+        keywords,
         source
       };
     } else {
-      // Use mock analysis for demo
-      console.log('Using mock analysis for demo');
-      analysis = generateMockAnalysis(url);
+      // Failed to fetch playlist HTML
+      console.log('Failed to fetch playlist HTML');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Unable to access playlist. Please check that the URL is correct and the playlist is public.'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     console.log('Analysis complete:', analysis);
