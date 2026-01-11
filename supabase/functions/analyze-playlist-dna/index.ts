@@ -209,42 +209,6 @@ function categorizeVibes(tags: string[]): { genres: string[]; moods: string[]; k
   };
 }
 
-// Generate mock analysis when APIs fail
-function generateMockAnalysis(url: string): PlaylistAnalysis {
-  const source = detectPlatform(url);
-  
-  const mockProfiles = [
-    {
-      artists: ['Океан Ельзи', 'Бумбокс', 'The Hardkiss', 'MONATIK', 'Dakha Brakha'],
-      genres: ['Ukrainian', 'Rock', 'Indie'],
-      keywords: ['ukrainian rock', 'alternative', 'indie', 'folk rock'],
-      tags: ['ukrainian', 'rock', 'alternative', 'indie'],
-      moods: ['energetic', 'melancholic', 'upbeat'],
-    },
-    {
-      artists: ['KAZKA', 'Go_A', 'Jamala', 'Onuka', 'Latexfauna'],
-      genres: ['Ukrainian', 'Electronic', 'Pop'],
-      keywords: ['electronic', 'folk', 'synth', 'dance'],
-      tags: ['ukrainian pop', 'electronic', 'folk electronic'],
-      moods: ['energetic', 'dreamy', 'party'],
-    },
-    {
-      artists: ['Kalush', 'Alyona Alyona', 'TNMK', 'Скрябін'],
-      genres: ['Ukrainian', 'Rap', 'Pop'],
-      keywords: ['hip-hop', 'rap', 'urban', 'folk rap'],
-      tags: ['hip-hop', 'ukrainian rap', 'urban'],
-      moods: ['energetic', 'intense', 'upbeat'],
-    }
-  ];
-
-  const profile = mockProfiles[Math.floor(Math.random() * mockProfiles.length)];
-
-  return {
-    ...profile,
-    source,
-  };
-}
-
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -284,13 +248,15 @@ serve(async (req) => {
       }
     }
 
-    // If we still don't have artists, use mock data
+    // If we still don't have artists, return error - no mock data
     if (artists.length === 0) {
-      console.log('No artists extracted, using mock analysis');
-      const mockAnalysis = generateMockAnalysis(url || '');
+      console.log('No artists extracted from playlist');
       return new Response(
-        JSON.stringify({ success: true, analysis: mockAnalysis }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          success: false,
+          error: 'Unable to extract artists from playlist. Please try a different playlist URL or check that the playlist is public.'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

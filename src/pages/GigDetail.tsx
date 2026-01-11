@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Instagram, Youtube, Play } from "lucide-react";
+import { ArrowLeft, Instagram, Youtube } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -15,14 +15,14 @@ interface Gig {
   genre: string;
   image_url: string | null;
   match_percentage: number | null;
+  tags: string[] | null;
+  musicbrainz_genres: string[] | null;
+  instagram_url: string | null;
+  youtube_url: string | null;
+  spotify_url: string | null;
+  website_url: string | null;
+  artist_description: string | null;
 }
-
-// Mock top tracks data
-const mockTopTracks = [
-  { id: 1, title: "Popular Song #1", duration: "3:24" },
-  { id: 2, title: "Hit Single", duration: "4:01" },
-  { id: 3, title: "Fan Favorite", duration: "3:45" },
-];
 
 const GigDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -149,37 +149,15 @@ const GigDetail = () => {
           </span>
         </div>
 
-        {/* Top Hits Section */}
-        <section className="mt-8">
-          <h2 className="text-lg font-bold text-foreground mb-3">Popular Songs</h2>
-          <div className="space-y-3">
-            {mockTopTracks.map((track) => (
-              <div
-                key={track.id}
-                className="flex items-center gap-4 p-3 bg-card rounded-xl border border-border"
-              >
-                <button className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Play size={18} className="text-primary ml-0.5" />
-                </button>
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{track.title}</p>
-                  <p className="text-sm text-muted-foreground">{track.duration}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* Description */}
-        <section className="mt-8">
-          <h2 className="text-lg font-bold text-foreground mb-3">About</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Don't miss {gig.artist_name} performing live at {gig.venue_name}! 
-            This {gig.genre} artist is known for their electrifying performances 
-            and unique sound that blends traditional elements with modern beats. 
-            Get ready for an unforgettable night of music and energy.
-          </p>
-        </section>
+        {gig.artist_description && (
+          <section className="mt-8">
+            <h2 className="text-lg font-bold text-foreground mb-3">About</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              {gig.artist_description}
+            </p>
+          </section>
+        )}
 
         {/* Social Links - Instagram & YouTube Only */}
         <section className="mt-8">
@@ -187,8 +165,9 @@ const GigDetail = () => {
           <div className="flex gap-3">
             <button
               onClick={() => {
-                // Use Google search handoff to find verified Instagram profile
-                const instagramUrl = `https://www.google.com/search?q=${encodeURIComponent(gig.artist_name)}+official+instagram`;
+                // Use direct Instagram URL if available from MusicBrainz, otherwise fall back to search
+                const instagramUrl = gig.instagram_url ||
+                  `https://www.instagram.com/${encodeURIComponent(gig.artist_name.toLowerCase().replace(/\s+/g, ''))}`;
                 window.open(instagramUrl, '_blank', 'noopener,noreferrer');
               }}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white rounded-xl hover:opacity-90 transition-opacity"
@@ -198,8 +177,9 @@ const GigDetail = () => {
             </button>
             <button
               onClick={() => {
-                // Use YouTube search for official artist content
-                const youtubeUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(gig.artist_name)}+official+music`;
+                // Use direct YouTube URL if available from MusicBrainz, otherwise fall back to search
+                const youtubeUrl = gig.youtube_url ||
+                  `https://www.youtube.com/results?search_query=${encodeURIComponent(gig.artist_name)}+official+music`;
                 window.open(youtubeUrl, '_blank', 'noopener,noreferrer');
               }}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
